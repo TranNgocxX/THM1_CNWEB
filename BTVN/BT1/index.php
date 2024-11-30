@@ -1,17 +1,31 @@
-<?php include 'header.php'; ?>
-<?php include 'products.php'; ?>
+<?php
+include 'db.php';
+include 'header.php';
+
+$dsachSP = [];
+$sql = "SELECT * FROM products";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $dsachSP[] = $row;
+    }
+}
+?>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
 <main class="py-4">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="addcategory.php" class="btn btn-success">Thêm mới</a>
+            <a href="addcategory.php" class="btn btn-success btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>Thêm mới
+            </a>
         </div>
 
-        <!-- Bảng sp -->
-        <div class="table-responsive">
-            <table class="table table-bordered ">
-                <thead class="table-grey">
+        <div class="table-responsive shadow-sm">
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
                     <tr>
                         <th>#</th>
                         <th>Sản phẩm</th>
@@ -21,23 +35,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($products as $index => $product): ?>
+                    <?php foreach ($dsachSP as $index => $sanPhamItem): ?>
                     <tr>
                         <td><?= $index + 1 ?></td>
-                        <td><?= htmlspecialchars($product['name']) ?></td>
-                        <td><?= htmlspecialchars($product['price']) ?> VND</td>
+                        <td><?= htmlspecialchars($sanPhamItem['name']) ?></td>
+                        <td><?= htmlspecialchars($sanPhamItem['price']) ?> VND</td>
                         <td class="text-center">
-                            <!-- sửa -->
-                            <!-- <a href="#" class="btn btn-primary btn-sm"> -->
-                            <a href="category.php?action=edit&id=<?= $index ?>" class="btn btn-primary btn-sm">
-                                <i class="bi bi-pencil-square"></i>
+                            <a href="category.php?HanhDong=sua&id=<?= $index ?>" class="btn btn-primary btn-sm">
+                                <i class="bi bi-pencil-square"></i> Sửa
                             </a>
                         </td>
                         <td class="text-center">
-                            <!-- xóa -->
-                            <!-- <a href="#" class="btn btn-primary btn-sm"> -->
-                            <a href="category.php?action=delete&id=<?= $index ?>" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
-                                <i class="bi bi-trash"></i>
+                            <a href="category.php?HanhDong=xoa&id=<?= $index ?>" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
+                                <i class="bi bi-trash"></i> Xóa
                             </a>
                         </td>
                     </tr>
