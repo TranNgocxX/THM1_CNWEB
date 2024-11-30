@@ -1,19 +1,34 @@
- <?php
-include 'products.php';
+<?php
+include 'db.php';
 
-if (isset($_GET['action']) && isset($_GET['id'])) {
-    $action = $_GET['action'];
-    $id = intval($_GET['id']); // Lấy ID của sản phẩm (chỉ số mảng)
+$dsachSP = [];
+$sql = "SELECT * FROM products";
+$result = $conn->query($sql);
 
-    if ($id >= 0 && $id < count($products)) {
-        if ($action === 'edit') {
-            $productToEdit = $products[$id];
-        } elseif ($action === 'delete') {
-            unset($products[$id]);
-            $products = array_values($products); // Đặt lại chỉ số mảng
-            // Lưu lại thay đổi
-            file_put_contents('products.php', "<?php \$products = " . var_export($products, true) . "; ?>");
-            header('Location: inde.php'); // Quay lại trang chính
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $dsachSP[] = $row;
+    }
+}
+
+if (isset($_GET['HanhDong']) && isset($_GET['id'])) {
+    $HanhDong = $_GET['HanhDong'];
+    $id = intval($_GET['id']);
+
+    // Kiểm tra ID có hợp lệ không
+    if ($id >= 0 && $id < count($dsachSP)) {
+        if ($HanhDong === 'sua') {
+            // Sửa sản phẩm
+            $spSua = $dsachSP[$id];
+        } elseif ($HanhDong === 'xoa') {
+            // Xóa sản phẩm
+            $sql = "DELETE FROM products WHERE id = {$dsachSP[$id]['id']}";
+            if ($conn->query($sql) === TRUE) {
+                echo "Xóa thành công!";
+            } else {
+                echo "Lỗi: " . $conn->error;
+            }
+            header('Location: index.php');
             exit;
         }
     } else {
@@ -21,18 +36,21 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['name']) && isset($_POST['price']) && isset($_POST['id'])) {
+// Nếu là hành động sửa và có thông tin POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ten']) && isset($_POST['gia']) && isset($_POST['id'])) {
     $id = intval($_POST['id']);
-    $products[$id]['name'] = htmlspecialchars($_POST['name']);
-    $products[$id]['price'] = htmlspecialchars($_POST['price']);
-    // Lưu lại thay đổi
-    file_put_contents('products.php', "<?php \$products = " . var_export($products, true) . "; ?>");
-    header('Location: inde.php'); // Quay lại trang chính
+    $ten = htmlspecialchars($_POST['ten']);
+    $gia = htmlspecialchars($_POST['gia']);
+
+    $sql = "UPDATE products SET name='$ten', price='$gia' WHERE id=$id";
+    $conn->query($sql);
+    header('Location: index.php');
     exit;
 }
 ?>
 
-<?php if (isset($productToEdit)): ?>
+<!-- Hiển thị form sửa sản phẩm -->
+<?php if (isset($spSua)): ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,18 +63,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['name']) && isset($_PO
     <div class="container mt-5">
         <h2>Sửa sản phẩm</h2>
         <form method="POST">
-            <input type="hidden" name="id" value="<?= $id ?>">
+            <input type="hidden" name="id" value="<?= $spSua['id'] ?>">
             <div class="mb-3">
-                <label for="name" class="form-label">Tên sản phẩm</label>
-                <input type="text" class="form-control" id="name" name="name" value="<?= htmlspecialchars($productToEdit['name']) ?>" required>
+                <label for="ten" class="form-label">Tên sản phẩm</label>
+                <input type="text" class="form-control" id="ten" name="ten" value="<?= htmlspecialchars($spSua['name']) ?>" required>
             </div>
             <div class="mb-3">
-                <label for="price" class="form-label">Giá sản phẩm</label>
-                <input type="number" class="form-control" id="price" name="price" value="<?= htmlspecialchars($productToEdit['price']) ?>" required>
+                <label for="gia" class="form-label">Giá sản phẩm</label>
+                <input type="number" class="form-control" id="gia" name="gia" value="<?= htmlspecialchars($spSua['price']) ?>" required>
             </div>
             <button type="submit" class="btn btn-success">Lưu</button>
-            <a href="inde.php" class="btn btn-secondary">Hủy</a>
+            <a href="index.php" class="btn btn-secondary">Hủy</a>
         </form>
     </div>
 </body>
 </html>
+<?php endif; ?>
